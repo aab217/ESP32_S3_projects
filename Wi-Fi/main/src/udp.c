@@ -74,8 +74,7 @@ void udp_tx_task(void *pvParameters)
             vTaskDelay(1 / portTICK_PERIOD_MS);
             //vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(250));
         }
-
-        // Если вышли — значит Wi-Fi отвалился
+        
         ESP_LOGW(TAG, "WiFi disconnected → closing UDP socket");
         if (sockfd >= 0)
         {

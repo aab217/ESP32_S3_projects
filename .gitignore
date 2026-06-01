@@ -3,3 +3,4 @@ sdkconfig
 sdkconfig.old
 dependencies.lock
 managed_components/
+Wi-Fi/main/inc/private.h

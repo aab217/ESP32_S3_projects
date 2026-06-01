@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 
+#define ESP_SERVER_PORT     54321
+#define CLIENT_PORT         12345
+
 typedef struct __attribute__((packed)) {        
     uint32_t    time_us;  
     uint16_t    variable1;
