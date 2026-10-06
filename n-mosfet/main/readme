@@ -1,0 +1,16 @@
+# Network Configuration Header File
+
+## Файл: `private.h`
+
+Этот файл содержит конфигурационные параметры для подключения к Wi-Fi сети и ESP серверу.
+
+## Содержимое файла
+
+```c
+#pragma once
+
+#define WIFI_SSID       "SSID"
+#define WIFI_PASSWORD   "PASSWORD"
+
+#define ESP_SERVER_IP   "255.255.255.255"
+```
