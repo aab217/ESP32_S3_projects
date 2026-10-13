@@ -2,6 +2,8 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "hal/adc_types.h"
+#include <string.h>
+
 
 static const char *TAG = "ADC_SHARE";
 
@@ -23,26 +25,46 @@ void adc_share_init(void)
 
 void adc_push_sample(uint8_t *buf, uint32_t rxlen)
 {
-    if (rxlen == 0) return;
+    if (buf == NULL || rxlen == 0) return;
 
     adc_sample_t *active = &ping_pong_buffer[write_idx];
 
+    memset(active, 0, sizeof(*active));
+
     active->timestamp_adc = esp_timer_get_time();
 
-    for (int conv = 0; conv < rxlen; conv += SOC_ADC_DIGI_RESULT_BYTES) {
-        adc_digi_output_data_t *p = (adc_digi_output_data_t*)&buf[conv];
-        
+    size_t sample_count = rxlen / SOC_ADC_DIGI_RESULT_BYTES;
+
+    if (sample_count > ADC_NUM_OF_CONV) {
+        ESP_LOGW(TAG,
+                 "Too many samples: %u, max: %u",
+                 (unsigned)sample_count,
+                 ADC_NUM_OF_CONV);
+
+        sample_count = ADC_NUM_OF_CONV;
+    }
+
+    for (size_t i = 0; i < sample_count; i++) {
+
+        adc_digi_output_data_t *p = (adc_digi_output_data_t *)&buf[i * SOC_ADC_DIGI_RESULT_BYTES];
+
         uint32_t ch = p->type2.channel;
         uint32_t val = p->type2.data;
 
         for (int chan = 0; chan < ADC_NUM_OF_CHAN; chan++) {
+
             if (ch == adc_channels[chan]) {
-                active->data[chan][conv / SOC_ADC_DIGI_RESULT_BYTES] = val;
-                ESP_LOGI(TAG, "CHAN %d: %lu", chan, (unsigned long)active->data[chan][conv / SOC_ADC_DIGI_RESULT_BYTES]);
+
+                active->data[chan][i] = val;
             }
         }
     }
-    if (xSemaphoreTake(adc_mutex, pdMS_TO_TICKS(1)) == pdTRUE) {
+
+    if (adc_mutex == NULL) {
+        ESP_LOGE(TAG, "adc_mutex == NULL");
+        return;
+    }
+    if (xSemaphoreTake(adc_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
         write_idx ^= 1;
         data_ready = true;
         xSemaphoreGive(adc_mutex);
@@ -55,7 +77,7 @@ bool adc_get_latest(adc_sample_t *out)
 {
     if (out == NULL || !data_ready) return false;
 
-    if (xSemaphoreTake(adc_mutex, pdMS_TO_TICKS(1)) == pdTRUE) {
+    if (xSemaphoreTake(adc_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
         *out = ping_pong_buffer[!write_idx];
         data_ready = false;        
         xSemaphoreGive(adc_mutex);

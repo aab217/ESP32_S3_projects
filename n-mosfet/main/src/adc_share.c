@@ -4,6 +4,7 @@
 #include "hal/adc_types.h"
 #include <string.h>
 
+
 static const char *TAG = "ADC_SHARE";
 
 static SemaphoreHandle_t adc_mutex = NULL;

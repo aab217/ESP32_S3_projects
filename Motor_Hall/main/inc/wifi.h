@@ -1,14 +1,18 @@
 #pragma once
 
+#include <stdbool.h>
+
 #include "esp_wifi.h"
 #include "esp_netif.h"
 #include "esp_event.h"
 
-#define RECONNECT_DELAY_MS 10000
-#define MAX_RETRY          5
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
 
 #define WIFI_CONNECTED_BIT BIT0
-#define WIFI_FAIL_BIT      BIT1
 
-void wifi_init_sta(void);
+void wifi_init_ap(void);
+
+bool wifi_is_connected(void);
+
 EventGroupHandle_t wifi_get_event_group(void);

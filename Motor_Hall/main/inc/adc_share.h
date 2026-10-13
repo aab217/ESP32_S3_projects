@@ -5,9 +5,10 @@
 #include "freertos/semphr.h"
 #include "config.h"
 
+
 typedef struct {
     uint64_t timestamp_adc;                                     // Время в микросекундах
-    uint32_t data[ADC_NUM_OF_CHAN][ADC_NUM_OF_CONV];        // Значения каналов
+    uint32_t data[ADC_NUM_OF_CHAN][ADC_NUM_OF_CONV];            // Значения каналов
 } adc_sample_t;
 
 void adc_share_init(void);

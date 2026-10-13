@@ -9,7 +9,7 @@ static const char *TAG = "ADC";
 
 adc_channel_t adc_channels[ADC_NUM_OF_CHAN] = {
     ADC_CHANNEL_3,  // GPIO4
-    ADC_CHANNEL_4   // GPIO5
+
 };
 
 TaskHandle_t cd_adc_task = NULL; 
@@ -31,6 +31,7 @@ static void adc_driver_init()
             .flush_pool = true
         },
     };
+
     ESP_ERROR_CHECK(adc_continuous_new_handle(&adc_config, &adc_handle));
 
     adc_continuous_config_t dig_cfg = {
@@ -40,11 +41,11 @@ static void adc_driver_init()
         .pattern_num = ADC_NUM_OF_CHAN,
     };
 
-    adc_digi_pattern_config_t adc_pattern[SOC_ADC_PATT_LEN_MAX];
+    adc_digi_pattern_config_t adc_pattern[SOC_ADC_PATT_LEN_MAX] = {0};
 
     for (int i = 0; i < ADC_NUM_OF_CHAN; i++) {
         adc_pattern[i].atten = ADC_ATTEN_DB_12;
-        adc_pattern[i].channel = adc_channels[i];
+        adc_pattern[i].channel = adc_channels[i] & 0x7;
         adc_pattern[i].unit = ADC_UNIT_1;
         adc_pattern[i].bit_width = SOC_ADC_DIGI_MAX_BITWIDTH;
 
@@ -69,7 +70,7 @@ void adc_measurement_task(void *pvParameters)
     cd_adc_task = xTaskGetCurrentTaskHandle();
     adc_continuous_start(adc_handle);
 
-    uint8_t buf[256];
+    uint8_t buf[ADC_CONV_FRAME_SIZE];
     uint32_t rxlen = 0;
 
     while (1) {
